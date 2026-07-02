@@ -22,6 +22,12 @@ Les visuels sont créés dans le dossier `stories/` et envoyés directement dans
 
 ## L'application web (alternative autonome)
 
+**Le parcours est volontairement minimal : collez votre plan média, la plateforme gère le reste.**
+
+- **Branding automatique** : les couleurs, la signature (« Sarah Dabancens · Neuroscience & Équicoach »), le @ et le ton de la marque sont appliqués à chaque story. Tout se règle dans `config/branding.json` (couleurs, ambiances, positionnement, ton transmis à Claude).
+- **Vos photos** : glissez-déposez vos photos — elles sont intégrées en fond des stories avec un voile aux couleurs de la marque (effet Ken Burns en vidéo). Les photos restent dans votre navigateur, rien n'est envoyé sur un serveur.
+- **Motion design** : chaque story est animée (titre qui monte, trait qui se dessine, CTA qui rebondit, barres de progression). Export **PNG** (image fixe) et **vidéo MP4/WebM de 7 secondes** en 1080×1920, prêts à poster.
+
 ## Ce que fait l'outil
 
 1. **Vous collez votre plan d'action** (lancement, offre, cible, objectif…).

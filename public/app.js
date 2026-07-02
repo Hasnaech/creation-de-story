@@ -1,156 +1,127 @@
-// Interface du générateur de stories.
-// Les stories sont dessinées sur un canvas 1080x1920 (format story Instagram)
-// et téléchargeables en PNG, prêtes à poster.
+// Parcours « plan média → stories prêtes à poster » :
+// 1. La plateforme charge le branding (config/branding.json)
+// 2. L'utilisatrice colle son plan média et dépose ses photos (optionnel)
+// 3. Claude génère la séquence, le moteur anime chaque story aux couleurs
+//    de la marque, avec export PNG et vidéo.
+
+import { StoryRenderer } from "./story-renderer.js";
 
 const $ = (id) => document.getElementById(id);
 
-const PALETTES = {
-  energie:   { haut: "#ff6b35", bas: "#f7c548", texte: "#ffffff", pastille: "rgba(255,255,255,0.22)" },
-  confiance: { haut: "#1d3557", bas: "#457b9d", texte: "#ffffff", pastille: "rgba(255,255,255,0.18)" },
-  douceur:   { haut: "#f4e3d7", bas: "#e8b4b8", texte: "#4a3b36", pastille: "rgba(74,59,54,0.10)" },
-  urgence:   { haut: "#7b1e1e", bas: "#d64545", texte: "#ffffff", pastille: "rgba(255,255,255,0.20)" },
-  premium:   { haut: "#14110f", bas: "#3a322c", texte: "#e9dcc5", pastille: "rgba(233,220,197,0.14)" },
-  nature:    { haut: "#2d5a3d", bas: "#8ab88a", texte: "#ffffff", pastille: "rgba(255,255,255,0.18)" },
-};
+let branding = null;
+let rendus = []; // instances StoryRenderer affichées
+let photos = []; // HTMLImageElement déposées par l'utilisatrice
 
-const STICKERS = {
-  sondage: "📊 Sondage",
-  question: "❓ Question",
-  quiz: "🧠 Quiz",
-  compte_a_rebours: "⏳ Compte à rebours",
-  lien: "🔗 Lien",
-  emoji_slider: "🎚️ Curseur emoji",
-  aucun: null,
-};
+// --- Branding : applique l'identité à l'interface ---
 
-let storiesCourantes = [];
-
-// --- Rendu d'une story sur canvas 1080x1920 ---
-
-function retourLigne(ctx, texte, largeurMax) {
-  const mots = texte.split(/\s+/);
-  const lignes = [];
-  let ligne = "";
-  for (const mot of mots) {
-    const essai = ligne ? `${ligne} ${mot}` : mot;
-    if (ctx.measureText(essai).width > largeurMax && ligne) {
-      lignes.push(ligne);
-      ligne = mot;
-    } else {
-      ligne = essai;
-    }
-  }
-  if (ligne) lignes.push(ligne);
-  return lignes;
+async function chargerBranding() {
+  const res = await fetch("/api/branding");
+  branding = await res.json();
+  $("marqueNom").textContent = branding.nom.toUpperCase();
+  $("marqueSousTitre").textContent = branding.sousTitre;
+  $("piedMarque").textContent = `${branding.instagram} · Format story 1080×1920 · Propulsé par Claude`;
+  document.documentElement.style.setProperty("--accent", branding.couleurs.accent);
+  document.documentElement.style.setProperty("--marque-fond", branding.couleurs.fond);
 }
 
-function dessinerStory(canvas, story, index, total) {
-  const W = 1080, H = 1920;
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d");
-  const pal = PALETTES[story.couleur_ambiance] || PALETTES.confiance;
+// --- Photos : dépôt local, jamais envoyées à un serveur ---
 
-  // Fond dégradé
-  const grad = ctx.createLinearGradient(0, 0, W * 0.3, H);
-  grad.addColorStop(0, pal.haut);
-  grad.addColorStop(1, pal.bas);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+function brancherZonePhotos() {
+  const zone = $("zonePhotos");
+  const input = $("inputPhotos");
+  zone.addEventListener("click", () => input.click());
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("survol"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("survol"));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    zone.classList.remove("survol");
+    ajouterPhotos(e.dataTransfer.files);
+  });
+  input.addEventListener("change", () => ajouterPhotos(input.files));
+}
 
-  // Cercles décoratifs
-  ctx.fillStyle = pal.pastille;
-  ctx.beginPath(); ctx.arc(W * 0.9, H * 0.12, 260, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(W * 0.08, H * 0.85, 200, 0, Math.PI * 2); ctx.fill();
-
-  // Indicateur de progression (comme les stories Instagram)
-  const marge = 60, ecart = 12;
-  const segW = (W - marge * 2 - ecart * (total - 1)) / total;
-  for (let i = 0; i < total; i++) {
-    ctx.fillStyle = i === index ? pal.texte : pal.pastille;
-    ctx.beginPath();
-    ctx.roundRect(marge + i * (segW + ecart), 70, segW, 10, 5);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = pal.texte;
-  ctx.textAlign = "center";
-
-  // Titre
-  ctx.font = "bold 92px Georgia, serif";
-  const lignesTitre = retourLigne(ctx, story.titre, W - 180);
-  let y = H * 0.32;
-  for (const l of lignesTitre) { ctx.fillText(l, W / 2, y); y += 108; }
-
-  // Trait séparateur
-  ctx.fillRect(W / 2 - 70, y + 10, 140, 6);
-  y += 110;
-
-  // Texte principal
-  ctx.font = "52px Georgia, serif";
-  for (const l of retourLigne(ctx, story.texte, W - 220)) { ctx.fillText(l, W / 2, y); y += 76; }
-
-  // Sticker suggéré
-  const sticker = STICKERS[story.sticker];
-  if (sticker) {
-    y += 70;
-    ctx.font = "44px Georgia, serif";
-    const wS = ctx.measureText(sticker).width + 90;
-    ctx.fillStyle = pal.pastille;
-    ctx.beginPath(); ctx.roundRect(W / 2 - wS / 2, y - 52, wS, 84, 42); ctx.fill();
-    ctx.fillStyle = pal.texte;
-    ctx.fillText(sticker, W / 2, y + 6);
-  }
-
-  // CTA en bas
-  ctx.font = "bold 54px Georgia, serif";
-  const ctaLignes = retourLigne(ctx, story.cta, W - 300);
-  const ctaH = ctaLignes.length * 70 + 60;
-  const ctaY = H - 240 - ctaH;
-  const ctaW = Math.min(W - 160, Math.max(...ctaLignes.map((l) => ctx.measureText(l).width)) + 140);
-  ctx.fillStyle = pal.texte;
-  ctx.beginPath(); ctx.roundRect(W / 2 - ctaW / 2, ctaY, ctaW, ctaH, ctaH / 2); ctx.fill();
-  ctx.fillStyle = pal.haut;
-  let cy = ctaY + 82;
-  for (const l of ctaLignes) { ctx.fillText(l, W / 2, cy); cy += 70; }
-
-  // Flèche "suite" sauf pour la dernière
-  if (index < total - 1) {
-    ctx.fillStyle = pal.texte;
-    ctx.font = "48px Georgia, serif";
-    ctx.fillText("suivant ›", W / 2, H - 110);
+function ajouterPhotos(fichiers) {
+  for (const fichier of fichiers) {
+    if (!fichier.type.startsWith("image/")) continue;
+    const lecteur = new FileReader();
+    lecteur.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        photos.push(img);
+        const vignette = document.createElement("img");
+        vignette.src = img.src;
+        vignette.title = "Cliquer pour retirer";
+        vignette.addEventListener("click", (e) => {
+          e.stopPropagation();
+          photos = photos.filter((p) => p !== img);
+          vignette.remove();
+        });
+        $("apercusPhotos").appendChild(vignette);
+      };
+      img.src = lecteur.result;
+    };
+    lecteur.readAsDataURL(fichier);
   }
 }
 
-// --- Affichage ---
+// --- Affichage des stories animées ---
 
 function afficherStories(data) {
-  storiesCourantes = data.stories || [];
+  rendus.forEach((r) => r.stopPreview());
+  rendus = [];
+
   $("sequenceInfo").innerHTML =
     `<strong>Objectif :</strong> ${data.sequence.objectif}<br><strong>Fil conducteur :</strong> ${data.sequence.fil_conducteur}` +
     (data.feedUtilise ? "<br><em>✔ Générées en s'inspirant des performances de votre feed</em>" : "") +
+    (photos.length ? `<br><em>📷 ${photos.length} photo(s) intégrée(s) aux visuels</em>` : "") +
     (data.demo ? "<br><em>🧪 Mode démo : séquence d'exemple — ajoutez ANTHROPIC_API_KEY dans .env pour la génération réelle</em>" : "");
   $("conseilPublication").textContent = data.conseil_publication ? `💡 ${data.conseil_publication}` : "";
 
   const liste = $("listeStories");
   liste.innerHTML = "";
-  storiesCourantes.forEach((story, i) => {
+  const stories = data.stories || [];
+
+  stories.forEach((story, i) => {
     const carte = document.createElement("div");
     carte.className = "story-carte";
 
     const canvas = document.createElement("canvas");
-    dessinerStory(canvas, story, i, storiesCourantes.length);
+    const photo = photos.length ? photos[i % photos.length] : null;
+    const rendu = new StoryRenderer(canvas, story, i, stories.length, branding, photo);
+    rendu.startPreview();
+    rendus.push(rendu);
 
     const details = document.createElement("div");
     details.className = "story-details";
     details.innerHTML = `<strong>Story ${story.numero}</strong> — 🎬 ${story.suggestion_visuelle}`;
 
-    const btn = document.createElement("button");
-    btn.className = "secondaire";
-    btn.textContent = "⬇️ Télécharger PNG";
-    btn.addEventListener("click", () => telechargerCanvas(canvas, `story-${story.numero}.png`));
+    const lignesBoutons = document.createElement("div");
+    lignesBoutons.className = "story-boutons";
 
-    carte.append(canvas, details, btn);
+    const btnPNG = document.createElement("button");
+    btnPNG.className = "secondaire";
+    btnPNG.textContent = "PNG";
+    btnPNG.addEventListener("click", () => telechargerURL(rendu.exportPNG(), `story-${story.numero}.png`));
+
+    const btnVideo = document.createElement("button");
+    btnVideo.className = "principal";
+    btnVideo.textContent = "🎬 Vidéo";
+    btnVideo.addEventListener("click", async () => {
+      btnVideo.disabled = true;
+      btnVideo.textContent = "Enregistrement… 7 s";
+      try {
+        const { blob, extension } = await rendu.exportVideo();
+        telechargerURL(URL.createObjectURL(blob), `story-${story.numero}.${extension}`);
+      } catch (err) {
+        setErreur(err.message);
+      } finally {
+        btnVideo.disabled = false;
+        btnVideo.textContent = "🎬 Vidéo";
+      }
+    });
+
+    lignesBoutons.append(btnPNG, btnVideo);
+    carte.append(canvas, details, lignesBoutons);
     liste.appendChild(carte);
   });
 
@@ -158,10 +129,10 @@ function afficherStories(data) {
   $("sectionStories").scrollIntoView({ behavior: "smooth" });
 }
 
-function telechargerCanvas(canvas, nom) {
+function telechargerURL(url, nom) {
   const a = document.createElement("a");
   a.download = nom;
-  a.href = canvas.toDataURL("image/png");
+  a.href = url;
   a.click();
 }
 
@@ -194,7 +165,7 @@ function setErreur(message) {
 
 $("btnGenerer").addEventListener("click", async () => {
   setErreur("");
-  setChargement("Claude rédige vos stories… (10 à 30 secondes)");
+  setChargement("Claude compose vos stories aux couleurs de votre marque… (10 à 30 secondes)");
   try {
     const data = await appelApi("/api/generer-stories", {
       planAction: $("planAction").value,
@@ -234,10 +205,27 @@ $("btnAnalyser").addEventListener("click", async () => {
   }
 });
 
-$("btnToutTelecharger").addEventListener("click", () => {
-  document.querySelectorAll("#listeStories canvas").forEach((canvas, i) => {
-    setTimeout(() => telechargerCanvas(canvas, `story-${i + 1}.png`), i * 300);
+$("btnToutPNG").addEventListener("click", () => {
+  rendus.forEach((rendu, i) => {
+    setTimeout(() => telechargerURL(rendu.exportPNG(), `story-${i + 1}.png`), i * 300);
   });
+});
+
+$("btnToutVideo").addEventListener("click", async () => {
+  const btn = $("btnToutVideo");
+  btn.disabled = true;
+  try {
+    for (let i = 0; i < rendus.length; i++) {
+      btn.textContent = `🎬 Story ${i + 1}/${rendus.length}…`;
+      const { blob, extension } = await rendus[i].exportVideo();
+      telechargerURL(URL.createObjectURL(blob), `story-${i + 1}.${extension}`);
+    }
+  } catch (err) {
+    setErreur(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🎬 Tout en vidéo";
+  }
 });
 
 // Mini-rendu markdown (titres, gras, listes) pour l'analyse
@@ -251,12 +239,16 @@ function markdownSimple(md) {
     .replace(/^## (.*)$/gm, "<h2>$1</h2>")
     .replace(/^# (.*)$/gm, "<h1>$1</h1>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/^[-*] (.*)$/gm, "• $1");
+    .replace(/^[-*] (.*)$/gm, "• $1")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
 }
 
-// Statut de configuration au chargement
+// --- Initialisation ---
+
 (async () => {
+  brancherZonePhotos();
   try {
+    await chargerBranding();
     const res = await fetch("/api/statut");
     const s = await res.json();
     $("statut").innerHTML =

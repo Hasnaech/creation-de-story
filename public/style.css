@@ -22,7 +22,45 @@ header {
 }
 
 header h1 { font-size: 2.2rem; margin-bottom: 0.4rem; }
-header p { color: #6b6154; max-width: 34rem; margin: 0 auto; font-style: italic; }
+header p.pitch { color: #6b6154; max-width: 36rem; margin: 0 auto; font-style: italic; }
+
+.marque-nom {
+  letter-spacing: 0.35em;
+  font-size: 0.85rem;
+  color: var(--marque-fond, #101b2d);
+  font-weight: 700;
+}
+.marque-sous-titre {
+  font-style: italic;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.etiquette { display: block; font-weight: 700; margin: 1rem 0 0.4rem; }
+.etiquette .optionnel { font-weight: 400; font-size: 0.8rem; color: #6b6154; }
+
+.zone-photos {
+  border: 2px dashed var(--bordure);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  color: #6b6154;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.zone-photos.survol, .zone-photos:hover { border-color: var(--accent); background: #fdf8f1; }
+.apercus-photos { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-top: 0.6rem; }
+.apercus-photos img {
+  width: 64px; height: 96px; object-fit: cover;
+  border-radius: 8px; border: 2px solid var(--bordure); cursor: pointer;
+}
+.apercus-photos img:hover { border-color: #b3462b; opacity: 0.8; }
+
+.reglages { margin: 1rem 0; }
+.reglages summary { cursor: pointer; color: #6b6154; font-size: 0.9rem; }
+
+.story-boutons { display: flex; gap: 0.5rem; }
+.story-boutons button { flex: 1; font-size: 0.85rem; padding: 0.45rem 0.8rem; }
 
 .statut { margin-top: 0.8rem; font-size: 0.85rem; color: #6b6154; }
 .statut .ok { color: #3d7a4f; }

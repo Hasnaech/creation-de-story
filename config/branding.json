@@ -1,0 +1,21 @@
+{
+  "nom": "Sarah Dabancens",
+  "sousTitre": "Neuroscience & Équicoach",
+  "instagram": "@sarahdabancens",
+  "positionnement": "Coach en neurosciences et équicoaching, spécialiste des profils toxiques au travail. Aide les managers, dirigeants et DRH à gérer les collaborateurs difficiles, poser des limites et retrouver un management serein.",
+  "ton": "Direct et incarné, tutoiement, phrases courtes, accroches chiffrées (« 1 manager sur 2… ») et scénarios vécus. Expertise scientifique accessible, jamais jargonneuse. Empathique mais sans complaisance.",
+  "couleurs": {
+    "fond": "#101B2D",
+    "fondSecondaire": "#23364F",
+    "accent": "#C08552",
+    "texte": "#F5EFE6"
+  },
+  "ambiances": {
+    "confiance": { "haut": "#101B2D", "bas": "#2B4667", "texte": "#F5EFE6" },
+    "premium":   { "haut": "#0B111C", "bas": "#26303E", "texte": "#EBDFC8" },
+    "urgence":   { "haut": "#4A1620", "bas": "#8C3A2F", "texte": "#F5EFE6" },
+    "energie":   { "haut": "#8C5427", "bas": "#C08552", "texte": "#FFF7EA" },
+    "douceur":   { "haut": "#EFE6D8", "bas": "#D9C3AC", "texte": "#2B2620" },
+    "nature":    { "haut": "#1C2E24", "bas": "#4A6B52", "texte": "#F0EEE2" }
+  }
+}

@@ -3,49 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Création de Story — Stories Instagram avec Claude</title>
+  <title>Création de Story — Sarah Dabancens</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>✨ Création de Story</h1>
-    <p>Vos stories Instagram générées par Claude, à partir de votre plan d'action et de ce qui marche sur votre feed.</p>
+    <p class="marque-nom" id="marqueNom">SARAH DABANCENS</p>
+    <p class="marque-sous-titre" id="marqueSousTitre">Neuroscience &amp; Équicoach</p>
+    <h1>✨ Vos stories, prêtes à poster</h1>
+    <p class="pitch">Collez votre plan média, ajoutez vos photos si vous voulez — la plateforme s'occupe du reste : branding, textes, visuels animés.</p>
     <div id="statut" class="statut"></div>
   </header>
 
   <main>
-    <section class="panneau">
-      <h2>1. Votre plan d'action</h2>
-      <textarea id="planAction" rows="10" placeholder="Collez ici votre plan d'action ou votre brief…
+    <section class="panneau hero">
+      <label class="etiquette" for="planAction">Votre plan média</label>
+      <textarea id="planAction" rows="8" placeholder="Collez ici votre plan média ou votre brief…
 
 Exemple :
-- Lancement de la nouvelle collection printemps le 15 mars
-- Cible : femmes 25-40 ans, urbaines, sensibles à l'éco-responsabilité
-- Objectif : générer du trafic vers la boutique en ligne
-- Offre : -20% la première semaine avec le code PRINTEMPS"></textarea>
+- Semaine du 15 juillet : promotion du guide gratuit « Les 9 profils toxiques »
+- Cible : managers et DRH confrontés à des collaborateurs difficiles
+- Objectif : recevoir le mot-clé PROFILS en DM
+- Offre en fin de séquence : consultation FLASH de 1h30"></textarea>
 
-      <div class="options">
-        <label>
-          Nombre de stories
-          <select id="nombreStories">
-            <option value="3">3</option>
-            <option value="5" selected>5</option>
-            <option value="7">7</option>
-            <option value="10">10</option>
-          </select>
-        </label>
-        <label>
-          Tonalité (optionnel)
-          <input type="text" id="tonalite" placeholder="ex : fun et complice" />
-        </label>
-        <label class="case">
-          <input type="checkbox" id="utiliserFeed" checked />
-          S'inspirer de ce qui marche sur mon feed
-        </label>
+      <label class="etiquette">Vos photos <span class="optionnel">(optionnel — glissez-déposez, elles restent dans votre navigateur)</span></label>
+      <div id="zonePhotos" class="zone-photos">
+        <input type="file" id="inputPhotos" accept="image/*" multiple hidden />
+        <p>📷 Cliquez ou déposez vos photos ici</p>
+        <div id="apercusPhotos" class="apercus-photos"></div>
       </div>
 
+      <details class="reglages">
+        <summary>Réglages</summary>
+        <div class="options">
+          <label>
+            Nombre de stories
+            <select id="nombreStories">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="7">7</option>
+              <option value="10">10</option>
+            </select>
+          </label>
+          <label>
+            Tonalité (optionnel)
+            <input type="text" id="tonalite" placeholder="ex : plus posé, plus percutant…" />
+          </label>
+          <label class="case">
+            <input type="checkbox" id="utiliserFeed" checked />
+            S'inspirer de ce qui marche sur mon feed
+          </label>
+        </div>
+      </details>
+
       <div class="actions">
-        <button id="btnGenerer" class="principal">🚀 Générer mes stories</button>
+        <button id="btnGenerer" class="principal">✨ Créer mes stories</button>
         <button id="btnAnalyser" class="secondaire">📊 Analyser mon feed</button>
       </div>
       <div id="chargement" class="chargement" hidden></div>
@@ -59,18 +71,21 @@ Exemple :
     </section>
 
     <section id="sectionStories" class="panneau" hidden>
-      <h2>2. Vos stories</h2>
+      <h2>Vos stories animées</h2>
       <div id="sequenceInfo" class="sequence-info"></div>
       <div id="listeStories" class="liste-stories"></div>
       <p id="conseilPublication" class="conseil"></p>
-      <button id="btnToutTelecharger" class="principal">⬇️ Tout télécharger (PNG)</button>
+      <div class="actions">
+        <button id="btnToutPNG" class="secondaire">⬇️ Tout en PNG</button>
+        <button id="btnToutVideo" class="principal">🎬 Tout en vidéo</button>
+      </div>
     </section>
   </main>
 
   <footer>
-    <p>Propulsé par Claude (Anthropic) · Format story 1080×1920</p>
+    <p id="piedMarque">@sarahdabancens · Format story 1080×1920 · Propulsé par Claude</p>
   </footer>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

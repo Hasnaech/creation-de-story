@@ -1,12 +1,18 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
+import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { fetchFeedPerformance, instagramConfigured } from "./lib/instagram.js";
 import { genererStories, analyserFeed } from "./lib/claude.js";
 import { FEED_EXEMPLE, ANALYSE_EXEMPLE, STORIES_EXEMPLE } from "./lib/demo.js";
 
 const claudeConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY);
+
+const __dirnameConfig = path.dirname(fileURLToPath(import.meta.url));
+const branding = JSON.parse(
+  readFileSync(path.join(__dirnameConfig, "config", "branding.json"), "utf8")
+);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -15,6 +21,9 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // État de la configuration, pour guider l'utilisateur dans l'interface
+// Identité de marque (config/branding.json) : couleurs, ton, signature
+app.get("/api/branding", (_req, res) => res.json(branding));
+
 app.get("/api/statut", (_req, res) => {
   res.json({
     claude: claudeConfigured(),
@@ -60,6 +69,7 @@ app.post("/api/generer-stories", async (req, res) => {
       feedPosts,
       nombreStories: Math.min(Math.max(parseInt(nombreStories, 10) || 5, 1), 10),
       tonalite: (tonalite || "").trim(),
+      branding,
     });
     res.json({ ...resultat, feedUtilise: Boolean(feedPosts && feedPosts.length) });
   } catch (err) {
