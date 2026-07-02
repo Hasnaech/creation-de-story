@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Création de Story — Stories Instagram avec Claude</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>✨ Création de Story</h1>
+    <p>Vos stories Instagram générées par Claude, à partir de votre plan d'action et de ce qui marche sur votre feed.</p>
+    <div id="statut" class="statut"></div>
+  </header>
+
+  <main>
+    <section class="panneau">
+      <h2>1. Votre plan d'action</h2>
+      <textarea id="planAction" rows="10" placeholder="Collez ici votre plan d'action ou votre brief…
+
+Exemple :
+- Lancement de la nouvelle collection printemps le 15 mars
+- Cible : femmes 25-40 ans, urbaines, sensibles à l'éco-responsabilité
+- Objectif : générer du trafic vers la boutique en ligne
+- Offre : -20% la première semaine avec le code PRINTEMPS"></textarea>
+
+      <div class="options">
+        <label>
+          Nombre de stories
+          <select id="nombreStories">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="7">7</option>
+            <option value="10">10</option>
+          </select>
+        </label>
+        <label>
+          Tonalité (optionnel)
+          <input type="text" id="tonalite" placeholder="ex : fun et complice" />
+        </label>
+        <label class="case">
+          <input type="checkbox" id="utiliserFeed" checked />
+          S'inspirer de ce qui marche sur mon feed
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="btnGenerer" class="principal">🚀 Générer mes stories</button>
+        <button id="btnAnalyser" class="secondaire">📊 Analyser mon feed</button>
+      </div>
+      <div id="chargement" class="chargement" hidden></div>
+      <div id="erreur" class="erreur" hidden></div>
+    </section>
+
+    <section id="sectionAnalyse" class="panneau" hidden>
+      <h2>📊 Ce qui marche sur votre feed</h2>
+      <div id="analyseTexte" class="analyse"></div>
+      <div id="topPosts" class="top-posts"></div>
+    </section>
+
+    <section id="sectionStories" class="panneau" hidden>
+      <h2>2. Vos stories</h2>
+      <div id="sequenceInfo" class="sequence-info"></div>
+      <div id="listeStories" class="liste-stories"></div>
+      <p id="conseilPublication" class="conseil"></p>
+      <button id="btnToutTelecharger" class="principal">⬇️ Tout télécharger (PNG)</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>Propulsé par Claude (Anthropic) · Format story 1080×1920</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
