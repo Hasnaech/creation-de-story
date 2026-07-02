@@ -1,25 +1,30 @@
-// Rendu animé des stories (1080×1920) aux couleurs de la marque.
-// Chaque story est une petite timeline de motion design : le fond (photo ou
-// dégradé) respire, le titre monte, le trait se dessine, le CTA rebondit.
-// Export PNG (dernière frame) et vidéo (MediaRecorder sur le canvas).
+// Rendu des stories 1080×1920 selon le brief SD Équicoaching :
+// sobre, éditorial, pas « template-y ». Photo pleine page, accroche en
+// grosse typo serif en haut, léger dégradé violet en bas pour la lisibilité,
+// CTA discret avec mot-clé, signature en coin. Zones de sécurité : 250 px
+// en haut et en bas (masquées par l'interface Instagram).
+// Motion sobre, dans l'esprit de ce qui se fait sur les réseaux :
+// fondus décalés, légère translation, zoom lent sur la photo. Rien qui
+// rebondit, rien qui clignote.
 
 const DUREE_ANIMATION = 7000; // ms
 
-// Easings
-const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-const easeOutBack = (t) => 1 + 2.7 * Math.pow(t - 1, 3) + 1.7 * Math.pow(t - 1, 2);
-// Progression d'une sous-animation entre deux instants de la timeline (0..1)
+const easeOutQuint = (t) => 1 - Math.pow(1 - t, 5);
 const seg = (t, debut, fin) => Math.min(Math.max((t - debut) / (fin - debut), 0), 1);
 
 const STICKERS = {
-  sondage: "📊 Sondage",
-  question: "❓ Question",
-  quiz: "🧠 Quiz",
-  compte_a_rebours: "⏳ Compte à rebours",
-  lien: "🔗 Lien",
-  emoji_slider: "🎚️ Curseur emoji",
+  sondage: "Sondage",
+  question: "Question",
+  quiz: "Quiz",
+  compte_a_rebours: "Compte à rebours",
+  lien: "Lien",
+  emoji_slider: "Curseur",
   aucun: null,
 };
+
+const SAFE_HAUT = 250;
+const SAFE_BAS = 250;
+const MARGE = 90;
 
 function retourLigne(ctx, texte, largeurMax) {
   const mots = String(texte).split(/\s+/);
@@ -45,185 +50,198 @@ export class StoryRenderer {
     this.index = index;
     this.total = total;
     this.branding = branding;
-    this.photo = photo; // HTMLImageElement ou null
+    this.photo = photo;
     this.W = 1080;
     this.H = 1920;
     canvas.width = this.W;
     canvas.height = this.H;
     this.ctx = canvas.getContext("2d");
     this._raf = null;
+    this._grain = this._creerGrain();
   }
 
   get palette() {
-    return (
-      this.branding.ambiances[this.story.couleur_ambiance] ||
-      this.branding.ambiances.confiance
-    );
+    return this.branding.palettes[this.branding.paletteActive] || this.branding.palettes.B;
   }
 
-  // t entre 0 (début) et 1 (fin de l'animation)
+  // Fin grain statique, pré-calculé une fois (rend la photo moins « lisse »)
+  _creerGrain() {
+    const c = document.createElement("canvas");
+    c.width = 270; c.height = 480;
+    const cx = c.getContext("2d");
+    const donnee = cx.createImageData(270, 480);
+    for (let i = 0; i < donnee.data.length; i += 4) {
+      const v = 118 + Math.random() * 20;
+      donnee.data[i] = donnee.data[i + 1] = donnee.data[i + 2] = v;
+      donnee.data[i + 3] = 255;
+    }
+    cx.putImageData(donnee, 0, 0);
+    return c;
+  }
+
   drawFrame(t) {
     const { ctx, W, H } = this;
     const pal = this.palette;
-    const accent = this.branding.couleurs.accent;
 
-    ctx.clearRect(0, 0, W, H);
-
-    // --- Fond : photo avec effet Ken Burns, ou dégradé de marque ---
+    // --- Fond ---
     if (this.photo) {
-      const zoom = 1.04 + 0.08 * t; // zoom lent continu
+      // Photo pleine page, zoom lent (aucun autre mouvement)
+      const zoom = 1.0 + 0.05 * t;
       const iw = this.photo.naturalWidth, ih = this.photo.naturalHeight;
       const scale = Math.max(W / iw, H / ih) * zoom;
       const dw = iw * scale, dh = ih * scale;
-      const dx = (W - dw) / 2 - 30 * t; // léger travelling
-      const dy = (H - dh) / 2;
-      ctx.drawImage(this.photo, dx, dy, dw, dh);
-      // Voile de marque pour la lisibilité
-      const voile = ctx.createLinearGradient(0, 0, 0, H);
-      voile.addColorStop(0, this._rgba(pal.haut, 0.55));
-      voile.addColorStop(0.45, this._rgba(pal.haut, 0.35));
-      voile.addColorStop(1, this._rgba(pal.haut, 0.88));
-      ctx.fillStyle = voile;
-      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(this.photo, (W - dw) / 2, (H - dh) / 2, dw, dh);
+
+      // Léger assombrissement haut (lisibilité du hook) et
+      // dégradé violet en bas (brief : léger overlay violet)
+      const haut = ctx.createLinearGradient(0, 0, 0, H * 0.5);
+      haut.addColorStop(0, this._rgba(pal.fonce, 0.55));
+      haut.addColorStop(1, this._rgba(pal.fonce, 0));
+      ctx.fillStyle = haut;
+      ctx.fillRect(0, 0, W, H * 0.5);
+
+      const bas = ctx.createLinearGradient(0, H * 0.45, 0, H);
+      bas.addColorStop(0, this._rgba(pal.violet, 0));
+      bas.addColorStop(1, this._rgba(pal.violet, 0.9));
+      ctx.fillStyle = bas;
+      ctx.fillRect(0, H * 0.45, W, H * 0.55);
     } else {
-      const grad = ctx.createLinearGradient(0, 0, W * 0.25, H);
-      grad.addColorStop(0, pal.haut);
-      grad.addColorStop(1, pal.bas);
+      // Sans photo : violet profond, très sobre
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, pal.fonce);
+      grad.addColorStop(1, pal.violet);
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
-      // Halo cuivré qui respire doucement
-      const pulse = 0.5 + 0.5 * Math.sin(t * Math.PI * 2);
-      const halo = ctx.createRadialGradient(W * 0.85, H * 0.15, 0, W * 0.85, H * 0.15, 500 + 60 * pulse);
-      halo.addColorStop(0, this._rgba(accent, 0.28));
-      halo.addColorStop(1, this._rgba(accent, 0));
-      ctx.fillStyle = halo;
-      ctx.fillRect(0, 0, W, H);
-      const halo2 = ctx.createRadialGradient(W * 0.1, H * 0.9, 0, W * 0.1, H * 0.9, 420);
-      halo2.addColorStop(0, this._rgba(accent, 0.14));
-      halo2.addColorStop(1, this._rgba(accent, 0));
-      ctx.fillStyle = halo2;
-      ctx.fillRect(0, 0, W, H);
     }
 
-    const texteCouleur = pal.texte;
-
-    // --- Barres de progression (celle en cours se remplit) ---
-    const marge = 60, ecart = 12;
-    const segW = (W - marge * 2 - ecart * (this.total - 1)) / this.total;
-    for (let i = 0; i < this.total; i++) {
-      const x = marge + i * (segW + ecart);
-      ctx.fillStyle = this._rgba(texteCouleur, 0.28);
-      ctx.beginPath(); ctx.roundRect(x, 70, segW, 10, 5); ctx.fill();
-      const remplissage = i < this.index ? 1 : i === this.index ? t : 0;
-      if (remplissage > 0) {
-        ctx.fillStyle = texteCouleur;
-        ctx.beginPath(); ctx.roundRect(x, 70, segW * remplissage, 10, 5); ctx.fill();
-      }
-    }
-
-    // --- Signature de marque en haut ---
-    const aMarque = seg(t, 0.03, 0.12);
-    ctx.globalAlpha = aMarque;
-    ctx.textAlign = "center";
-    ctx.fillStyle = texteCouleur;
-    ctx.font = "600 40px Georgia, serif";
-    ctx.fillText(this.branding.nom.toUpperCase(), W / 2, 175);
-    ctx.font = "italic 33px Georgia, serif";
-    ctx.fillStyle = this._rgba(texteCouleur, 0.85);
-    ctx.fillText(this.branding.sousTitre, W / 2, 224);
+    // Grain discret
+    ctx.globalAlpha = 0.05;
+    ctx.globalCompositeOperation = "overlay";
+    ctx.drawImage(this._grain, 0, 0, W, H);
+    ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
 
-    // --- Titre : lignes qui montent en cascade ---
-    ctx.font = "bold 96px Georgia, serif";
-    const lignesTitre = retourLigne(ctx, this.story.titre, W - 180);
-    let y = H * 0.33;
-    lignesTitre.forEach((ligne, i) => {
-      const a = easeOut(seg(t, 0.08 + i * 0.05, 0.2 + i * 0.05));
+    ctx.textAlign = "left";
+
+    // --- Signature discrète en coin (zone de sécurité respectée) ---
+    const aSignature = easeOutQuint(seg(t, 0.04, 0.14));
+    ctx.globalAlpha = aSignature * 0.9;
+    ctx.fillStyle = pal.or;
+    ctx.font = `500 30px ${pal.typoTexte}`;
+    this._texteEspace(this.branding.signature, MARGE, SAFE_HAUT + 40, 7);
+    ctx.globalAlpha = 1;
+
+    // --- Hook : grosse typo serif, peu de mots, aligné à gauche ---
+    ctx.font = `600 108px ${pal.typoTitre}`;
+    const lignesHook = retourLigne(ctx, this.story.titre, W - MARGE * 2);
+    let y = SAFE_HAUT + 210;
+    lignesHook.forEach((ligne, i) => {
+      const a = easeOutQuint(seg(t, 0.1 + i * 0.06, 0.28 + i * 0.06));
       ctx.globalAlpha = a;
-      ctx.fillStyle = texteCouleur;
-      ctx.fillText(ligne, W / 2, y + (1 - a) * 60);
-      y += 112;
+      ctx.fillStyle = pal.clair;
+      ctx.fillText(ligne, MARGE, y + (1 - a) * 26);
+      y += 118;
     });
     ctx.globalAlpha = 1;
 
-    // --- Trait cuivré qui se dessine ---
-    const aTrait = easeOut(seg(t, 0.2, 0.3));
-    if (aTrait > 0) {
-      ctx.fillStyle = accent;
-      const wTrait = 150 * aTrait;
-      ctx.fillRect(W / 2 - wTrait / 2, y + 8, wTrait, 7);
+    // --- Filet or, fin ---
+    const aFilet = easeOutQuint(seg(t, 0.3, 0.42));
+    if (aFilet > 0) {
+      ctx.fillStyle = pal.or;
+      ctx.fillRect(MARGE, y + 8, 110 * aFilet, 3);
     }
-    y += 108;
 
-    // --- Texte principal ---
-    ctx.font = "54px Georgia, serif";
-    const aTexte = easeOut(seg(t, 0.26, 0.4));
-    ctx.globalAlpha = aTexte;
-    ctx.fillStyle = texteCouleur;
-    for (const ligne of retourLigne(ctx, this.story.texte, W - 220)) {
-      ctx.fillText(ligne, W / 2, y + (1 - aTexte) * 30);
-      y += 80;
-    }
-    ctx.globalAlpha = 1;
+    // --- Bloc bas : texte, CTA, sticker, handle (dans la zone de sécurité) ---
+    ctx.font = `300 47px ${pal.typoTexte}`;
+    const lignesTexte = retourLigne(ctx, this.story.texte, W - MARGE * 2 - 60);
 
-    // --- Sticker recommandé ---
     const sticker = STICKERS[this.story.sticker];
-    if (sticker) {
-      const aSticker = easeOutBack(seg(t, 0.4, 0.52));
-      if (aSticker > 0) {
-        y += 66;
-        ctx.save();
-        ctx.translate(W / 2, y - 16);
-        ctx.scale(aSticker, aSticker);
-        ctx.font = "44px Georgia, serif";
-        const wS = ctx.measureText(sticker).width + 90;
-        ctx.fillStyle = this._rgba(texteCouleur, 0.18);
-        ctx.beginPath(); ctx.roundRect(-wS / 2, -42, wS, 84, 42); ctx.fill();
-        ctx.strokeStyle = this._rgba(texteCouleur, 0.4);
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.roundRect(-wS / 2, -42, wS, 84, 42); ctx.stroke();
-        ctx.fillStyle = texteCouleur;
-        ctx.fillText(sticker, 0, 16);
-        ctx.restore();
-      }
-    }
+    const hTexte = lignesTexte.length * 68;
+    const hCta = 64;
+    const hSticker = sticker ? 106 : 0;
+    const hHandle = 50;
+    let yBas = H - SAFE_BAS - hHandle - hSticker - hCta - 46 - hTexte;
 
-    // --- CTA : pastille cuivrée qui rebondit puis pulse ---
-    const aCta = easeOutBack(seg(t, 0.5, 0.62));
-    if (aCta > 0) {
-      ctx.font = "bold 56px Georgia, serif";
-      const ctaLignes = retourLigne(ctx, this.story.cta, W - 320);
-      const ctaH = ctaLignes.length * 72 + 62;
-      const ctaW = Math.min(W - 160, Math.max(...ctaLignes.map((l) => ctx.measureText(l).width)) + 150);
-      const pulse = t > 0.7 ? 1 + 0.015 * Math.sin((t - 0.7) * Math.PI * 8) : 1;
-      ctx.save();
-      ctx.translate(W / 2, H - 300 - ctaH / 2);
-      ctx.scale(aCta * pulse, aCta * pulse);
-      ctx.fillStyle = accent;
-      ctx.shadowColor = this._rgba("#000000", 0.35);
-      ctx.shadowBlur = 30;
-      ctx.shadowOffsetY = 12;
-      ctx.beginPath(); ctx.roundRect(-ctaW / 2, -ctaH / 2, ctaW, ctaH, ctaH / 2); ctx.fill();
-      ctx.shadowColor = "transparent";
-      ctx.fillStyle = "#FFF9F0";
-      let cy = -ctaH / 2 + 84;
-      for (const l of ctaLignes) { ctx.fillText(l, 0, cy); cy += 72; }
-      ctx.restore();
-    }
-
-    // --- Pied : @instagram + « suivant » ---
-    const aPied = seg(t, 0.6, 0.72);
-    ctx.globalAlpha = aPied;
-    ctx.fillStyle = this._rgba(texteCouleur, 0.85);
-    ctx.font = "40px Georgia, serif";
-    ctx.fillText(this.branding.instagram, W / 2, H - 160);
-    if (this.index < this.total - 1) {
-      const deriveX = 8 * Math.sin(t * Math.PI * 6);
-      ctx.font = "44px Georgia, serif";
-      ctx.fillStyle = this._rgba(texteCouleur, 0.7);
-      ctx.fillText("suivant ›", W / 2 + deriveX, H - 90);
-    }
+    lignesTexte.forEach((ligne, i) => {
+      const a = easeOutQuint(seg(t, 0.38 + i * 0.05, 0.52 + i * 0.05));
+      ctx.globalAlpha = a * 0.95;
+      ctx.fillStyle = pal.clair;
+      ctx.fillText(ligne, MARGE, yBas + (1 - a) * 18);
+      yBas += 68;
+    });
     ctx.globalAlpha = 1;
+    yBas += 46;
+
+    // CTA : sobre, mot-clé souligné à l'or (pas de gros bouton)
+    const aCta = easeOutQuint(seg(t, 0.56, 0.68));
+    if (aCta > 0) {
+      ctx.globalAlpha = aCta;
+      ctx.font = `500 50px ${pal.typoTexte}`;
+      ctx.fillStyle = pal.clair;
+      const cta = this.story.cta;
+      const motCle = this.story.mot_cle && this.story.mot_cle !== "aucun" ? this.story.mot_cle : null;
+
+      if (motCle && cta.includes(motCle)) {
+        // Le mot-clé ressort en or, souligné d'un trait fin
+        const avant = cta.slice(0, cta.indexOf(motCle));
+        const apres = cta.slice(cta.indexOf(motCle) + motCle.length);
+        let x = MARGE;
+        ctx.fillText(avant, x, yBas + 50);
+        x += ctx.measureText(avant).width;
+        ctx.fillStyle = pal.or;
+        ctx.font = `600 50px ${pal.typoTexte}`;
+        ctx.fillText(motCle, x, yBas + 50);
+        const wMot = ctx.measureText(motCle).width;
+        const aTrait = easeOutQuint(seg(t, 0.64, 0.74));
+        ctx.fillRect(x, yBas + 66, wMot * aTrait, 3);
+        x += wMot;
+        ctx.fillStyle = pal.clair;
+        ctx.font = `500 50px ${pal.typoTexte}`;
+        ctx.fillText(apres, x, yBas + 50);
+      } else {
+        ctx.fillText(cta, MARGE, yBas + 50);
+      }
+      ctx.globalAlpha = 1;
+    }
+    yBas += hCta;
+
+    // Sticker recommandé : simple capsule filaire, discrète
+    if (sticker) {
+      const aSticker = easeOutQuint(seg(t, 0.66, 0.78));
+      if (aSticker > 0) {
+        ctx.globalAlpha = aSticker * 0.85;
+        ctx.font = `400 34px ${pal.typoTexte}`;
+        const libelle = `Sticker ${sticker}`;
+        const wS = ctx.measureText(libelle).width + 70;
+        ctx.strokeStyle = this._rgba(pal.clair, 0.55);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(MARGE, yBas + 14, wS, 66, 33);
+        ctx.stroke();
+        ctx.fillStyle = pal.clair;
+        ctx.fillText(libelle, MARGE + 35, yBas + 59);
+        ctx.globalAlpha = 1;
+      }
+      yBas += hSticker;
+    }
+
+    // Handle en bas, petit
+    const aHandle = easeOutQuint(seg(t, 0.72, 0.84));
+    ctx.globalAlpha = aHandle * 0.75;
+    ctx.fillStyle = pal.clair;
+    ctx.font = `400 34px ${pal.typoTexte}`;
+    ctx.fillText(this.branding.instagram, MARGE, H - SAFE_BAS + 4);
+    ctx.globalAlpha = 1;
+  }
+
+  // Texte avec interlettrage manuel (canvas ne gère pas letter-spacing partout)
+  _texteEspace(texte, x, y, espace) {
+    const { ctx } = this;
+    let cx = x;
+    for (const ch of texte) {
+      ctx.fillText(ch, cx, y);
+      cx += ctx.measureText(ch).width + espace;
+    }
   }
 
   startPreview() {
@@ -244,13 +262,12 @@ export class StoryRenderer {
 
   exportPNG() {
     this.stopPreview();
-    this.drawFrame(0.85); // état final posé (avant la pulsation extrême)
+    this.drawFrame(1);
     const url = this.canvas.toDataURL("image/png");
     this.startPreview();
     return url;
   }
 
-  // Exporte l'animation en vidéo (MP4 si le navigateur le permet, sinon WebM)
   async exportVideo() {
     this.stopPreview();
     const types = [

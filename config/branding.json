@@ -1,21 +1,45 @@
 {
-  "nom": "Sarah Dabancens",
-  "sousTitre": "Neuroscience & Équicoach",
+  "nom": "SD Équicoaching",
+  "signature": "SD ÉQUICOACHING",
+  "sousTitre": "Neurosciences & Équicoaching",
   "instagram": "@sarahdabancens",
-  "positionnement": "Coach en neurosciences et équicoaching, spécialiste des profils toxiques au travail. Aide les managers, dirigeants et DRH à gérer les collaborateurs difficiles, poser des limites et retrouver un management serein.",
-  "ton": "Direct et incarné, tutoiement, phrases courtes, accroches chiffrées (« 1 manager sur 2… ») et scénarios vécus. Expertise scientifique accessible, jamais jargonneuse. Empathique mais sans complaisance.",
-  "couleurs": {
-    "fond": "#101B2D",
-    "fondSecondaire": "#23364F",
-    "accent": "#C08552",
-    "texte": "#F5EFE6"
+  "paletteActive": "B",
+  "palettes": {
+    "A": {
+      "violet": "#4A1E4F",
+      "or": "#B8923E",
+      "fonce": "#2C2C2C",
+      "clair": "#F5F2EC",
+      "typoTitre": "Helvetica, 'Helvetica Neue', Arial, sans-serif",
+      "typoTexte": "Helvetica, 'Helvetica Neue', Arial, sans-serif"
+    },
+    "B": {
+      "violet": "#591F57",
+      "or": "#C9A96E",
+      "fonce": "#26102A",
+      "clair": "#F7F4EE",
+      "typoTitre": "'Cormorant Garamond', Georgia, serif",
+      "typoTexte": "'Jost', 'Helvetica Neue', Helvetica, sans-serif"
+    }
   },
-  "ambiances": {
-    "confiance": { "haut": "#101B2D", "bas": "#2B4667", "texte": "#F5EFE6" },
-    "premium":   { "haut": "#0B111C", "bas": "#26303E", "texte": "#EBDFC8" },
-    "urgence":   { "haut": "#4A1620", "bas": "#8C3A2F", "texte": "#F5EFE6" },
-    "energie":   { "haut": "#8C5427", "bas": "#C08552", "texte": "#FFF7EA" },
-    "douceur":   { "haut": "#EFE6D8", "bas": "#D9C3AC", "texte": "#2B2620" },
-    "nature":    { "haut": "#1C2E24", "bas": "#4A6B52", "texte": "#F0EEE2" }
+  "registre": "tutoiement",
+  "positionnement": "Sarah Dabancens, fondatrice de SD Équicoaching. Combine neurosciences, équicoaching (coaching assisté par le cheval), approches systémiques et Human Design pour aider managers, DRH et comités de direction à gérer la toxicité en entreprise. 13 ans de direction commerciale internationale avant SD Équicoaching. Certifiée Qualiopi. Propriétaire du Ranch Horse Paradise : les chevaux sont l'outil pédagogique central, pas un décor.",
+  "ton": "Direct, incisif, phrases courtes. Une idée par ligne. Registre affirmatif avec la structure de reframe : « Ce n'est pas X. C'est Y. » Aucun jargon corporate creux. Jamais de tirets cadratins. Pas de ton robotique ou lisse : ça doit sonner écrit par une praticienne, pas par une IA. Anecdotes clients réelles pour ancrer l'expertise (« Une cliente m'a récemment confié... »). Ancrage terrain : chiffres, expérience commerciale.",
+  "piliers": [
+    "collaborateur_toxique",
+    "neurosciences_management",
+    "posture_manageriale",
+    "burnout_managerial",
+    "storytelling_client",
+    "recrutement_red_flags"
+  ],
+  "motsCles": ["FLASH", "GUIDE", "PROFILS", "WEBINAIRE", "FORMATION", "EBOOK", "NEUROSCIENCES", "DIAGNOSTIC"],
+  "photosParPilier": {
+    "collaborateur_toxique": "photos environnement pro (bureau, salle de formation)",
+    "neurosciences_management": "photos nature / calme du ranch",
+    "posture_manageriale": "photos environnement pro",
+    "burnout_managerial": "photos nature / calme du ranch",
+    "storytelling_client": "photos coulisses / prise de notes",
+    "recrutement_red_flags": "photos environnement pro"
   }
 }

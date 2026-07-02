@@ -17,11 +17,20 @@ let photos = []; // HTMLImageElement déposées par l'utilisatrice
 async function chargerBranding() {
   const res = await fetch("/api/branding");
   branding = await res.json();
-  $("marqueNom").textContent = branding.nom.toUpperCase();
+  const pal = branding.palettes[branding.paletteActive] || branding.palettes.B;
+  $("marqueNom").textContent = branding.signature;
   $("marqueSousTitre").textContent = branding.sousTitre;
   $("piedMarque").textContent = `${branding.instagram} · Format story 1080×1920 · Propulsé par Claude`;
-  document.documentElement.style.setProperty("--accent", branding.couleurs.accent);
-  document.documentElement.style.setProperty("--marque-fond", branding.couleurs.fond);
+  document.documentElement.style.setProperty("--accent", pal.or);
+  document.documentElement.style.setProperty("--marque-fond", pal.violet);
+  // Charge les typos de la marque avant le rendu canvas
+  try {
+    await Promise.all([
+      document.fonts.load(`600 108px ${pal.typoTitre}`),
+      document.fonts.load(`300 47px ${pal.typoTexte}`),
+      document.fonts.load(`500 50px ${pal.typoTexte}`),
+    ]);
+  } catch { /* repli automatique sur Georgia / sans-serif */ }
 }
 
 // --- Photos : dépôt local, jamais envoyées à un serveur ---
@@ -93,7 +102,8 @@ function afficherStories(data) {
 
     const details = document.createElement("div");
     details.className = "story-details";
-    details.innerHTML = `<strong>Story ${story.numero}</strong> — 🎬 ${story.suggestion_visuelle}`;
+    const motCle = story.mot_cle && story.mot_cle !== "aucun" ? ` · 🔑 ${story.mot_cle}` : "";
+    details.innerHTML = `<strong>Story ${story.numero}</strong>${motCle}<br>📷 ${story.suggestion_visuelle}`;
 
     const lignesBoutons = document.createElement("div");
     lignesBoutons.className = "story-boutons";

@@ -10,10 +10,14 @@
 }
 
 body {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Jost", "Helvetica Neue", Helvetica, sans-serif;
   background: var(--fond);
   color: var(--encre);
   line-height: 1.55;
+}
+
+h1, h2, .marque-sous-titre {
+  font-family: "Cormorant Garamond", Georgia, serif;
 }
 
 header {
