@@ -128,7 +128,8 @@ function afficherStories(data) {
   storiesCourantes = data.stories || [];
   $("sequenceInfo").innerHTML =
     `<strong>Objectif :</strong> ${data.sequence.objectif}<br><strong>Fil conducteur :</strong> ${data.sequence.fil_conducteur}` +
-    (data.feedUtilise ? "<br><em>✔ Générées en s'inspirant des performances de votre feed</em>" : "");
+    (data.feedUtilise ? "<br><em>✔ Générées en s'inspirant des performances de votre feed</em>" : "") +
+    (data.demo ? "<br><em>🧪 Mode démo : séquence d'exemple — ajoutez ANTHROPIC_API_KEY dans .env pour la génération réelle</em>" : "");
   $("conseilPublication").textContent = data.conseil_publication ? `💡 ${data.conseil_publication}` : "";
 
   const liste = $("listeStories");
@@ -260,7 +261,7 @@ function markdownSimple(md) {
     const s = await res.json();
     $("statut").innerHTML =
       `Claude : <span class="${s.claude ? "ok" : "ko"}">${s.claude ? "✔ connecté" : "✘ clé API manquante"}</span> · ` +
-      `Instagram : <span class="${s.instagram ? "ok" : "ko"}">${s.instagram ? "✔ connecté" : "✘ non connecté (voir README)"}</span>`;
-    if (!s.instagram) $("utiliserFeed").checked = false;
+      `Instagram : <span class="${s.instagram ? "ok" : "ko"}">${s.instagram ? "✔ connecté" : "✘ non connecté (voir README)"}</span>` +
+      (s.demo ? ` · <span class="ko">🧪 mode démo actif</span>` : "");
   } catch { /* le serveur répondra bien assez tôt */ }
 })();
