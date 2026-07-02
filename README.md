@@ -2,6 +2,26 @@
 
 Générez vos **stories Instagram** avec Claude, à partir de votre **plan d'action** — et laissez Claude s'inspirer de **ce qui marche sur votre feed**.
 
+## 🚀 Le plus simple : directement dans Claude Code
+
+Si votre Instagram est connecté à Claude Code via le connecteur **Windsor.ai** (c'est le cas sur ce compte), deux commandes suffisent — aucune clé API ni serveur à configurer :
+
+| Commande | Ce qu'elle fait |
+|---|---|
+| `/analyse-feed` | Récupère les 30 derniers jours du feed, classe les posts par engagement et explique ce qui marche (et ce qui marche moins) |
+| `/story <votre plan d'action>` | Génère une séquence de 5 stories inspirée des posts qui performent, avec les visuels 1080×1920 en SVG prêts à poster |
+
+Exemple :
+
+```
+/story Lancement de mon atelier "Manager face aux profils toxiques" le 15 juillet,
+cible DRH et managers, objectif : inscriptions via le lien en bio
+```
+
+Les visuels sont créés dans le dossier `stories/` et envoyés directement dans la conversation.
+
+## L'application web (alternative autonome)
+
 ## Ce que fait l'outil
 
 1. **Vous collez votre plan d'action** (lancement, offre, cible, objectif…).
