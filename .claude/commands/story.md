@@ -1,35 +1,39 @@
 ---
-description: Génère une séquence de stories Instagram à partir du plan d'action, inspirée de ce qui marche sur le feed
+description: Génère une séquence de stories Instagram à partir du plan média, selon le brief SD Équicoaching
 ---
 
-Crée mes stories Instagram à partir de ce plan d'action : $ARGUMENTS
+Crée mes stories Instagram à partir de ce plan média : $ARGUMENTS
 
 Étapes à suivre :
 
-1. **Plan d'action.** Si aucun plan d'action n'est fourni ci-dessus, demande-le-moi (ou cherche un fichier de plan d'action dans le projet : `plan*.md`, `brief*.md`). Ne génère jamais sans brief.
+1. **Brief de marque.** Lis `config/branding.json` : palette active, typos, registre, ton, piliers, mots-clés ManyChat. Applique ces règles à tout ce que tu produis. Règles d'écriture non négociables : phrases courtes, une idée par ligne, reframe « Ce n'est pas X. C'est Y. », hooks contre-intuitifs, jamais de tirets cadratins, aucun ton corporate ou IA, un seul mot-clé ManyChat par story (FLASH réservé à la fin de séquence).
 
-2. **Ce qui marche sur le feed.** Récupère les performances récentes via le connecteur MCP Windsor.ai (`mcp__Windsor_ai__get_data`) :
+2. **Plan média.** Si aucun plan n'est fourni ci-dessus, demande-le (ou cherche `plan*.md` / `brief*.md` dans le projet). Ne génère jamais sans brief.
+
+3. **Ce qui marche sur le feed.** Récupère les performances récentes via le connecteur MCP Windsor.ai (`mcp__Windsor_ai__get_data`) :
    - connector : `instagram`
    - fields : `["timestamp", "media_type", "media_caption", "media_like_count", "media_comments_count", "media_reach", "media_saved", "media_shares"]`
    - date_preset : `last_30dT`
-   - Identifie les 5 posts les plus engageants (likes + commentaires + 2×enregistrements + 3×partages) et note leurs angles, accroches et appels à l'action. Si l'appel échoue, continue sans le feed et signale-le.
+   - Identifie les 5 posts les plus engageants (likes + commentaires + 2×enregistrements + 3×partages) et note leurs hooks, angles et CTA. Si l'appel échoue, continue sans le feed et signale-le.
 
-3. **Génère une séquence de 5 stories** (ou le nombre demandé), pensée pour le format vertical 1080×1920. Pour chaque story :
-   - **Titre** : accroche très courte (max 8 mots), qui arrête le scroll
-   - **Texte** : 1 à 3 phrases courtes
-   - **CTA** : appel à l'action (réponds en DM, tape un mot-clé, sondage…)
-   - **Sticker Instagram recommandé** : sondage, question, quiz, compte à rebours, lien, curseur emoji, ou aucun
-   - **Suggestion de visuel** : quoi filmer ou montrer en fond
-   Les stories doivent s'enchaîner (fil narratif) et réutiliser les angles qui performent sur le feed. Reste dans le ton habituel du compte (visible dans les légendes récupérées).
+4. **Photos.** Si un dossier `photos/` existe dans le projet, liste son contenu et associe une photo à chaque story selon le pilier (voir `photosParPilier` dans le branding : pro → DRH/posture, ranch/nature → neurosciences/burn-out, coulisses → storytelling client). Sinon, indique simplement le type de photo à utiliser.
 
-4. **Crée les visuels.** Pour chaque story, génère un fichier SVG 1080×1920 dans `stories/` (crée le dossier si besoin) :
-   - fond en dégradé vertical assorti à l'ambiance de la story
-   - barres de progression en haut (comme les stories Instagram)
-   - titre en grand (Georgia ou serif, gras), texte en dessous, pastille CTA en bas
-   - texte découpé manuellement en lignes courtes (pas de retour à la ligne automatique en SVG : maximum ~20 caractères par ligne pour le titre, ~35 pour le texte)
-   - dernière ligne « suivant › » sauf sur la dernière story
-   Envoie ensuite les fichiers à l'utilisateur avec SendUserFile.
+5. **Génère la séquence** (5 stories par défaut). Pour chaque story : pilier, hook (max 9 mots, grosse typo), texte (1 à 3 phrases courtes), CTA avec le mot-clé tel quel (« Commente PROFILS »), sticker recommandé, type de photo. Montée en tension : valeur d'abord, vente à la fin.
 
-5. **Termine par** : le fil conducteur de la séquence, le meilleur moment de publication (déduis-le des heures des posts qui performent), et un rappel des mots-clés CTA utilisés.
+6. **Crée les visuels** en SVG 1080×1920 dans `stories/` (structure du brief, sobre, pas « template ») :
+   - photo en fond si disponible (balise `<image>` intégrée en base64), sinon dégradé violet profond
+   - léger dégradé violet en bas pour la lisibilité (`fonce` → `violet` de la palette)
+   - zones de sécurité : aucun texte à moins de 250 px du haut et du bas
+   - signature `SD ÉQUICOACHING` petite, en capitales or espacées, en haut à gauche
+   - hook en grosse typo serif (Cormorant Garamond, repli Georgia), aligné à gauche, crème
+   - texte en typo sans-serif légère (Jost, repli Helvetica)
+   - CTA sobre : le mot-clé en or, souligné d'un trait fin ; pas de gros bouton
+   - capsule filaire discrète pour le sticker, handle `@sarahdabancens` en bas
+   - découpe les lignes manuellement (pas de retour automatique en SVG) : ~18 caractères par ligne pour le hook, ~38 pour le texte
+   Envoie ensuite les fichiers avec SendUserFile.
+
+7. **Termine par** : le fil conducteur, le créneau de publication (déduis-le des heures des posts qui performent), et le rappel des mots-clés utilisés.
+
+Note : pour les versions **animées** (vidéo MP4) et l'intégration photo avec effet de zoom, utilise l'application web du projet (`npm start`), qui gère le motion design. Depuis Claude, les visuels sont des images fixes.
 
 Réponds intégralement en français.
