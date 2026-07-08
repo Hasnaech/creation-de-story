@@ -124,7 +124,7 @@ export class StoryRenderer {
     ctx.textAlign = "left";
 
     // --- Signature discrète en coin (zone de sécurité respectée) ---
-    const aSignature = easeOutQuint(seg(t, 0.04, 0.14));
+    const aSignature = easeOutQuint(seg(t, 0.0, 0.05));
     ctx.globalAlpha = aSignature * 0.9;
     ctx.fillStyle = pal.or;
     ctx.font = `500 30px ${pal.typoTexte}`;
@@ -136,7 +136,7 @@ export class StoryRenderer {
     const lignesHook = retourLigne(ctx, this.story.titre, W - MARGE * 2);
     let y = SAFE_HAUT + 210;
     lignesHook.forEach((ligne, i) => {
-      const a = easeOutQuint(seg(t, 0.1 + i * 0.06, 0.28 + i * 0.06));
+      const a = easeOutQuint(seg(t, 0.01 + i * 0.015, 0.07 + i * 0.015));
       ctx.globalAlpha = a;
       ctx.fillStyle = pal.clair;
       ctx.fillText(ligne, MARGE, y + (1 - a) * 26);
@@ -145,7 +145,7 @@ export class StoryRenderer {
     ctx.globalAlpha = 1;
 
     // --- Filet or, fin ---
-    const aFilet = easeOutQuint(seg(t, 0.3, 0.42));
+    const aFilet = easeOutQuint(seg(t, 0.06, 0.12));
     if (aFilet > 0) {
       ctx.fillStyle = pal.or;
       ctx.fillRect(MARGE, y + 8, 110 * aFilet, 3);
@@ -163,7 +163,7 @@ export class StoryRenderer {
     let yBas = H - SAFE_BAS - hHandle - hSticker - hCta - 46 - hTexte;
 
     lignesTexte.forEach((ligne, i) => {
-      const a = easeOutQuint(seg(t, 0.38 + i * 0.05, 0.52 + i * 0.05));
+      const a = easeOutQuint(seg(t, 0.03 + i * 0.012, 0.1 + i * 0.012));
       ctx.globalAlpha = a * 0.95;
       ctx.fillStyle = pal.clair;
       ctx.fillText(ligne, MARGE, yBas + (1 - a) * 18);
@@ -173,7 +173,7 @@ export class StoryRenderer {
     yBas += 46;
 
     // CTA : sobre, mot-clé souligné à l'or (pas de gros bouton)
-    const aCta = easeOutQuint(seg(t, 0.56, 0.68));
+    const aCta = easeOutQuint(seg(t, 0.06, 0.13));
     if (aCta > 0) {
       ctx.globalAlpha = aCta;
       ctx.font = `500 50px ${pal.typoTexte}`;
@@ -192,7 +192,7 @@ export class StoryRenderer {
         ctx.font = `600 50px ${pal.typoTexte}`;
         ctx.fillText(motCle, x, yBas + 50);
         const wMot = ctx.measureText(motCle).width;
-        const aTrait = easeOutQuint(seg(t, 0.64, 0.74));
+        const aTrait = easeOutQuint(seg(t, 0.1, 0.17));
         ctx.fillRect(x, yBas + 66, wMot * aTrait, 3);
         x += wMot;
         ctx.fillStyle = pal.clair;
@@ -207,7 +207,7 @@ export class StoryRenderer {
 
     // Sticker recommandé : simple capsule filaire, discrète
     if (sticker) {
-      const aSticker = easeOutQuint(seg(t, 0.66, 0.78));
+      const aSticker = easeOutQuint(seg(t, 0.09, 0.16));
       if (aSticker > 0) {
         ctx.globalAlpha = aSticker * 0.85;
         ctx.font = `400 34px ${pal.typoTexte}`;
@@ -226,7 +226,7 @@ export class StoryRenderer {
     }
 
     // Handle en bas, petit
-    const aHandle = easeOutQuint(seg(t, 0.72, 0.84));
+    const aHandle = easeOutQuint(seg(t, 0.11, 0.18));
     ctx.globalAlpha = aHandle * 0.75;
     ctx.fillStyle = pal.clair;
     ctx.font = `400 34px ${pal.typoTexte}`;

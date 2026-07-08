@@ -114,7 +114,7 @@ function afficherStories(data) {
     btnPNG.addEventListener("click", () => telechargerURL(rendu.exportPNG(), `story-${story.numero}.png`));
 
     const btnVideo = document.createElement("button");
-    btnVideo.className = "principal";
+    btnVideo.className = "secondaire";
     btnVideo.textContent = "🎬 Vidéo";
     btnVideo.addEventListener("click", async () => {
       btnVideo.disabled = true;
@@ -130,7 +130,14 @@ function afficherStories(data) {
       }
     });
 
-    lignesBoutons.append(btnPNG, btnVideo);
+    // Publier : ouvre la feuille de partage du téléphone vers l'éditeur
+    // Instagram (où on ajoute les vrais stickers avant de publier).
+    const btnPublier = document.createElement("button");
+    btnPublier.className = "principal";
+    btnPublier.textContent = "📲 Publier";
+    btnPublier.addEventListener("click", () => publierStory(rendu, story, btnPublier, carte));
+
+    lignesBoutons.append(btnPNG, btnVideo, btnPublier);
     carte.append(canvas, details, lignesBoutons);
     liste.appendChild(carte);
   });
@@ -144,6 +151,47 @@ function telechargerURL(url, nom) {
   a.download = nom;
   a.href = url;
   a.click();
+}
+
+// Publier : exporte la vidéo puis ouvre la feuille de partage du téléphone.
+// Sur mobile : choisir Instagram → Stories → l'éditeur s'ouvre avec la story,
+// on ajoute le sticker recommandé (sondage, question…) et on publie.
+// Sur ordinateur (pas de partage de fichiers) : téléchargement + marche à suivre.
+async function publierStory(rendu, story, bouton, carte) {
+  bouton.disabled = true;
+  bouton.textContent = "Préparation… 7 s";
+  try {
+    const { blob, extension } = await rendu.exportVideo();
+    const fichier = new File([blob], `story-${story.numero}.${extension}`, { type: blob.type });
+
+    if (navigator.canShare && navigator.canShare({ files: [fichier] })) {
+      await navigator.share({ files: [fichier] });
+    } else {
+      telechargerURL(URL.createObjectURL(blob), fichier.name);
+      afficherEtapesPublication(carte, story);
+    }
+  } catch (err) {
+    if (err.name !== "AbortError") setErreur(err.message);
+  } finally {
+    bouton.disabled = false;
+    bouton.textContent = "📲 Publier";
+  }
+}
+
+function afficherEtapesPublication(carte, story) {
+  let etapes = carte.querySelector(".etapes-publication");
+  if (!etapes) {
+    etapes = document.createElement("div");
+    etapes.className = "etapes-publication";
+    carte.appendChild(etapes);
+  }
+  const sticker = story.sticker && story.sticker !== "aucun" ? story.sticker.replace(/_/g, " ") : null;
+  etapes.innerHTML =
+    `<strong>Vidéo téléchargée. Pour publier :</strong><br>` +
+    `1. Transférez-la sur votre téléphone (AirDrop, WhatsApp…)<br>` +
+    `2. Instagram → ⊕ → <em>Story</em> → sélectionnez la vidéo<br>` +
+    (sticker ? `3. Ajoutez le sticker <em>${sticker}</em> 🎯 puis publiez` : `3. Publiez`) +
+    `<br><small>💡 Astuce : ouvrez cette page sur votre téléphone pour publier en un geste (bouton Publier → Instagram).</small>`;
 }
 
 // --- Appels API ---
@@ -208,6 +256,30 @@ $("btnAnalyser").addEventListener("click", async () => {
     });
     $("sectionAnalyse").hidden = false;
     $("sectionAnalyse").scrollIntoView({ behavior: "smooth" });
+  } catch (err) {
+    setErreur(err.message);
+  } finally {
+    setChargement("");
+  }
+});
+
+$("btnAnalyserStories").addEventListener("click", async () => {
+  setErreur("");
+  setChargement("Récupération de vos stories publiées et analyse de la rétention…");
+  try {
+    const data = await appelApi("/api/analyse-stories");
+    $("analyseStoriesTexte").innerHTML = markdownSimple(data.analyse);
+    const tableau = $("tableauStories");
+    tableau.innerHTML = data.stories.length ? "<h3>Séquence publiée</h3>" : "";
+    data.stories.forEach((s) => {
+      const div = document.createElement("div");
+      div.className = "top-post";
+      div.innerHTML = `<span><strong>${s.position}.</strong> ${echapper((s.legende || "(sans légende)").slice(0, 70))}</span>
+        <span class="metriques">👁 ${s.vues ?? "?"} · 💬 ${s.reponses} · ↪️ ${s.sautsAvant ?? "?"} · 🚪 ${s.sorties ?? "?"}</span>`;
+      tableau.appendChild(div);
+    });
+    $("sectionAnalyseStories").hidden = false;
+    $("sectionAnalyseStories").scrollIntoView({ behavior: "smooth" });
   } catch (err) {
     setErreur(err.message);
   } finally {

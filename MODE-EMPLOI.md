@@ -75,6 +75,32 @@ Tout se corrige en discutant, par exemple :
 
 Le fichier `config/branding.json` contient toute l'identité : palettes A (DRH) et B (premium), typos, registre, ton, piliers, mots-clés. Demandez simplement à Claude : « passe sur la palette A » ou « change le registre en vouvoiement » — il modifiera le fichier.
 
+## Publier sur Instagram (avec les vrais stickers)
+
+Instagram n'autorise pas les applications à publier des stories avec des stickers interactifs : le sondage, la question ou le compte à rebours s'ajoutent **dans l'éditeur Instagram**, juste avant de publier. Le circuit le plus rapide :
+
+1. **Depuis l'application web sur votre téléphone** : bouton **📲 Publier** sous la story → la feuille de partage s'ouvre → choisissez **Instagram** → **Story** → l'éditeur s'ouvre avec votre story ;
+2. **ajoutez le sticker recommandé** (indiqué sur le visuel et sous la carte : sondage, question…) et l'autocollant lien si besoin ;
+3. **publiez**. Répétez pour chaque story de la séquence (espacées de 30 à 60 minutes idéalement).
+
+Depuis un ordinateur, le bouton télécharge la vidéo et affiche la marche à suivre (transfert vers le téléphone, puis mêmes étapes).
+
+## Analyser les stories publiées (la boucle d'amélioration)
+
+Une fois la séquence publiée, mesurez ce qui a fonctionné pour améliorer la suivante :
+
+```
+/analyse-stories
+```
+
+Claude récupère les métriques de vos stories (vues, réponses, partages, **sorties** et **sauts en avant** : les deux signaux de décrochage), reconstitue la courbe de rétention de chaque séquence et vous dit : où les spectateurs décrochent, quelles stories font réagir, quoi reproduire, quoi corriger.
+
+Surtout, il **mémorise les leçons** dans `apprentissages/stories.md` : la prochaine fois que vous lancez `/story`, ces apprentissages sont automatiquement appliqués. Produire → publier → mesurer → améliorer, la boucle est bouclée.
+
+⏱ À lancer **dans les 24 h** après la publication (au-delà, Instagram n'expose plus les stories ; Windsor conserve toutefois l'historique qu'il a synchronisé).
+
+L'application web a le même bouton : **📈 Analyser mes stories**.
+
 ## Et pour les stories animées ?
 
 Les visuels générés depuis Claude sont des **images fixes**. Pour les versions **animées** (vidéo MP4 de 7 secondes : zoom lent sur la photo, textes en fondu, mot-clé qui se souligne), utilisez l'application web du projet :

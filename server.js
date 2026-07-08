@@ -3,9 +3,15 @@ import express from "express";
 import path from "path";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
-import { fetchFeedPerformance, instagramConfigured } from "./lib/instagram.js";
-import { genererStories, analyserFeed } from "./lib/claude.js";
-import { FEED_EXEMPLE, ANALYSE_EXEMPLE, STORIES_EXEMPLE } from "./lib/demo.js";
+import { fetchFeedPerformance, fetchStoriesPerformance, instagramConfigured } from "./lib/instagram.js";
+import { genererStories, analyserFeed, analyserStories } from "./lib/claude.js";
+import {
+  FEED_EXEMPLE,
+  ANALYSE_EXEMPLE,
+  STORIES_EXEMPLE,
+  STORIES_PERF_EXEMPLE,
+  ANALYSE_STORIES_EXEMPLE,
+} from "./lib/demo.js";
 
 const claudeConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY);
 
@@ -40,6 +46,25 @@ app.post("/api/analyse-feed", async (_req, res) => {
     const analyse =
       posts.length === 0 ? "" : claudeConfigured() ? await analyserFeed(posts) : ANALYSE_EXEMPLE;
     res.json({ posts, analyse, demo: !instagramConfigured() || !claudeConfigured() });
+  } catch (err) {
+    res.status(err.status || 500).json({ erreur: err.message });
+  }
+});
+
+// Analyse de rétention des stories publiées (dernières 24 h via l'API,
+// exemple en mode démo). Sert à améliorer les prochaines séquences.
+app.post("/api/analyse-stories", async (_req, res) => {
+  try {
+    const stories = instagramConfigured() ? await fetchStoriesPerformance() : STORIES_PERF_EXEMPLE;
+    if (stories.length === 0) {
+      return res.json({
+        stories: [],
+        analyse: "Aucune story active sur les dernières 24 heures. Publiez une séquence puis relancez l'analyse (l'API Instagram n'expose les stories que pendant 24 h).",
+        demo: !instagramConfigured() || !claudeConfigured(),
+      });
+    }
+    const analyse = claudeConfigured() ? await analyserStories(stories) : ANALYSE_STORIES_EXEMPLE;
+    res.json({ stories, analyse, demo: !instagramConfigured() || !claudeConfigured() });
   } catch (err) {
     res.status(err.status || 500).json({ erreur: err.message });
   }

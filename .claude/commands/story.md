@@ -16,6 +16,8 @@ Crée mes stories Instagram à partir de ce plan média : $ARGUMENTS
    - date_preset : `last_30dT`
    - Identifie les 5 posts les plus engageants (likes + commentaires + 2×enregistrements + 3×partages) et note leurs hooks, angles et CTA. Si l'appel échoue, continue sans le feed et signale-le.
 
+3 bis. **Apprentissages des stories passées.** Si le fichier `apprentissages/stories.md` existe (alimenté par `/analyse-stories`), lis-le et applique ses leçons : c'est ce que les données réelles ont montré sur la rétention (longueur des hooks, position des stickers, nombre de stories, etc.).
+
 4. **Photos.** Si un dossier `photos/` existe dans le projet, liste son contenu et associe une photo à chaque story selon le pilier (voir `photosParPilier` dans le branding : pro → DRH/posture, ranch/nature → neurosciences/burn-out, coulisses → storytelling client). Sinon, indique simplement le type de photo à utiliser.
 
 5. **Génère la séquence** (5 stories par défaut). Pour chaque story : pilier, hook (max 9 mots, grosse typo), texte (1 à 3 phrases courtes), CTA avec le mot-clé tel quel (« Commente PROFILS »), sticker recommandé, type de photo. Montée en tension : valeur d'abord, vente à la fin.

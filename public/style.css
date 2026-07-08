@@ -66,6 +66,15 @@ header p.pitch { color: #6b6154; max-width: 36rem; margin: 0 auto; font-style: i
 .story-boutons { display: flex; gap: 0.5rem; }
 .story-boutons button { flex: 1; font-size: 0.85rem; padding: 0.45rem 0.8rem; }
 
+.etapes-publication {
+  font-size: 0.8rem;
+  background: #fbf8f2;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  line-height: 1.7;
+}
+
 .statut { margin-top: 0.8rem; font-size: 0.85rem; color: #6b6154; }
 .statut .ok { color: #3d7a4f; }
 .statut .ko { color: #b3462b; }
