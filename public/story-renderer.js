@@ -172,34 +172,44 @@ export class StoryRenderer {
     ctx.globalAlpha = 1;
     yBas += 46;
 
-    // CTA : sobre, mot-clé souligné à l'or (pas de gros bouton)
+    // CTA : sobre, mot-clé souligné à l'or (pas de gros bouton).
+    // La taille s'ajuste pour ne jamais dépasser la marge (CTA long en un mot-clé).
     const aCta = easeOutQuint(seg(t, 0.06, 0.13));
     if (aCta > 0) {
       ctx.globalAlpha = aCta;
-      ctx.font = `500 50px ${pal.typoTexte}`;
-      ctx.fillStyle = pal.clair;
       const cta = this.story.cta;
       const motCle = this.story.mot_cle && this.story.mot_cle !== "aucun" ? this.story.mot_cle : null;
+      const dispo = W - MARGE * 2;
+
+      // Mesure la largeur totale à 50px puis réduit la taille si besoin
+      ctx.font = `500 50px ${pal.typoTexte}`;
+      const largeurTotale = ctx.measureText(cta).width;
+      const taille = Math.min(50, Math.floor((50 * dispo) / Math.max(largeurTotale, 1)));
+      const yTexte = yBas + 50;
 
       if (motCle && cta.includes(motCle)) {
         // Le mot-clé ressort en or, souligné d'un trait fin
         const avant = cta.slice(0, cta.indexOf(motCle));
         const apres = cta.slice(cta.indexOf(motCle) + motCle.length);
         let x = MARGE;
-        ctx.fillText(avant, x, yBas + 50);
+        ctx.fillStyle = pal.clair;
+        ctx.font = `500 ${taille}px ${pal.typoTexte}`;
+        ctx.fillText(avant, x, yTexte);
         x += ctx.measureText(avant).width;
         ctx.fillStyle = pal.or;
-        ctx.font = `600 50px ${pal.typoTexte}`;
-        ctx.fillText(motCle, x, yBas + 50);
+        ctx.font = `600 ${taille}px ${pal.typoTexte}`;
+        ctx.fillText(motCle, x, yTexte);
         const wMot = ctx.measureText(motCle).width;
         const aTrait = easeOutQuint(seg(t, 0.1, 0.17));
-        ctx.fillRect(x, yBas + 66, wMot * aTrait, 3);
+        ctx.fillRect(x, yTexte + Math.round(taille * 0.32), wMot * aTrait, 3);
         x += wMot;
         ctx.fillStyle = pal.clair;
-        ctx.font = `500 50px ${pal.typoTexte}`;
-        ctx.fillText(apres, x, yBas + 50);
+        ctx.font = `500 ${taille}px ${pal.typoTexte}`;
+        ctx.fillText(apres, x, yTexte);
       } else {
-        ctx.fillText(cta, MARGE, yBas + 50);
+        ctx.fillStyle = pal.clair;
+        ctx.font = `500 ${taille}px ${pal.typoTexte}`;
+        ctx.fillText(cta, MARGE, yTexte);
       }
       ctx.globalAlpha = 1;
     }
