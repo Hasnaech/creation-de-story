@@ -153,10 +153,10 @@ function telechargerURL(url, nom) {
   a.click();
 }
 
-// Publier : exporte la vidéo puis ouvre la feuille de partage du téléphone.
-// Sur mobile : choisir Instagram → Stories → l'éditeur s'ouvre avec la story,
-// on ajoute le sticker recommandé (sondage, question…) et on publie.
-// Sur ordinateur (pas de partage de fichiers) : téléchargement + marche à suivre.
+// Publier : exporte la vidéo puis ouvre la feuille de partage du téléphone,
+// d'où l'on choisit Instagram → Story. L'éditeur Instagram s'ouvre avec la
+// story chargée : on y ajoute le sticker recommandé (sondage, question…) et on
+// publie. Sur ordinateur (pas de partage de fichiers) : téléchargement + étapes.
 async function publierStory(rendu, story, bouton, carte) {
   bouton.disabled = true;
   bouton.textContent = "Préparation… 7 s";
@@ -165,10 +165,15 @@ async function publierStory(rendu, story, bouton, carte) {
     const fichier = new File([blob], `story-${story.numero}.${extension}`, { type: blob.type });
 
     if (navigator.canShare && navigator.canShare({ files: [fichier] })) {
-      await navigator.share({ files: [fichier] });
+      // Rappel du sticker AVANT d'ouvrir l'éditeur (c'est là qu'on l'ajoute)
+      afficherEtapesPublication(carte, story, true);
+      await navigator.share({
+        files: [fichier],
+        title: `Story ${story.numero} - ${branding.signature}`,
+      });
     } else {
       telechargerURL(URL.createObjectURL(blob), fichier.name);
-      afficherEtapesPublication(carte, story);
+      afficherEtapesPublication(carte, story, false);
     }
   } catch (err) {
     if (err.name !== "AbortError") setErreur(err.message);
@@ -178,7 +183,7 @@ async function publierStory(rendu, story, bouton, carte) {
   }
 }
 
-function afficherEtapesPublication(carte, story) {
+function afficherEtapesPublication(carte, story, mobile) {
   let etapes = carte.querySelector(".etapes-publication");
   if (!etapes) {
     etapes = document.createElement("div");
@@ -186,12 +191,22 @@ function afficherEtapesPublication(carte, story) {
     carte.appendChild(etapes);
   }
   const sticker = story.sticker && story.sticker !== "aucun" ? story.sticker.replace(/_/g, " ") : null;
-  etapes.innerHTML =
-    `<strong>Vidéo téléchargée. Pour publier :</strong><br>` +
-    `1. Transférez-la sur votre téléphone (AirDrop, WhatsApp…)<br>` +
-    `2. Instagram → ⊕ → <em>Story</em> → sélectionnez la vidéo<br>` +
-    (sticker ? `3. Ajoutez le sticker <em>${sticker}</em> 🎯 puis publiez` : `3. Publiez`) +
-    `<br><small>💡 Astuce : ouvrez cette page sur votre téléphone pour publier en un geste (bouton Publier → Instagram).</small>`;
+  const rappelSticker = sticker
+    ? `Dans l'éditeur Instagram, ajoutez le sticker <em>${sticker}</em> 🎯 avant de publier.`
+    : `Publiez depuis l'éditeur Instagram.`;
+
+  if (mobile) {
+    // La feuille de partage vient de s'ouvrir : on choisit Instagram → Story
+    etapes.innerHTML =
+      `<strong>Choisissez Instagram → Story.</strong><br>${rappelSticker}`;
+  } else {
+    etapes.innerHTML =
+      `<strong>Vidéo téléchargée. Pour publier via l'éditeur Instagram :</strong><br>` +
+      `1. Transférez-la sur votre téléphone (AirDrop, WhatsApp…)<br>` +
+      `2. Instagram → ⊕ → <em>Story</em> → sélectionnez la vidéo<br>` +
+      `3. ${rappelSticker}` +
+      `<br><small>💡 Depuis votre téléphone, le bouton Publier ouvre directement l'éditeur Instagram, sans transfert.</small>`;
+  }
 }
 
 // --- Appels API ---
