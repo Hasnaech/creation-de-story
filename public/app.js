@@ -210,15 +210,32 @@ function afficherEtapesPublication(carte, story, mobile) {
 }
 
 // --- Appels API ---
+// Si l'hébergement exige un code d'accès (CODE_ACCES côté serveur), il est
+// demandé une fois puis mémorisé dans ce navigateur.
 
-async function appelApi(url, corps) {
+async function appelApi(url, corps, deuxiemeEssai = false) {
+  const entetes = { "Content-Type": "application/json" };
+  const code = localStorage.getItem("codeAcces");
+  if (code) entetes["x-code-acces"] = code;
+
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: entetes,
     body: JSON.stringify(corps || {}),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.erreur || `Erreur ${res.status}`);
+
+  if (res.status === 401 && data.codeRequis && !deuxiemeEssai) {
+    const saisie = prompt("Code d'accès de la plateforme :");
+    if (saisie) {
+      localStorage.setItem("codeAcces", saisie.trim());
+      return appelApi(url, corps, true);
+    }
+  }
+  if (!res.ok) {
+    if (res.status === 401) localStorage.removeItem("codeAcces");
+    throw new Error(data.erreur || `Erreur ${res.status}`);
+  }
   return data;
 }
 

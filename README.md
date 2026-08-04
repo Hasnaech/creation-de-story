@@ -80,6 +80,19 @@ C'est ce qui permet à Claude de « voir » ce qui marche sur votre feed. Prére
 - **📊 Analyser mon feed** : récupère vos 20 derniers posts, les classe par engagement, et Claude en tire ce qui marche (sujets, formats, tons) + 3 recommandations pour vos stories.
 - **🚀 Générer mes stories** : Claude crée la séquence à partir du plan d'action (et du feed si la case est cochée). Chaque story est affichée en aperçu 1080×1920 et téléchargeable en PNG.
 
+## Déployer sur Vercel
+
+Le projet est prêt pour Vercel (`api/index.js` + `vercel.json`). Après avoir importé le dépôt GitHub dans Vercel :
+
+1. Dans le projet Vercel : **Settings → Environment Variables**, ajoutez :
+   - `ANTHROPIC_API_KEY` = votre clé (obligatoire — sans elle, l'app reste en mode démo)
+   - `CODE_ACCES` = un code de votre choix (fortement recommandé : l'URL étant publique, ce code empêche des inconnus de consommer vos crédits)
+   - `INSTAGRAM_ACCESS_TOKEN` et `INSTAGRAM_USER_ID` (optionnels, pour le feed en direct)
+2. **Deployments → ⋯ → Redeploy** (les variables ne s'appliquent qu'aux nouveaux déploiements).
+3. Ouvrez l'URL : le bandeau doit afficher « Claude : ✔ connecté » sans mention de mode démo. À la première génération, l'interface demande le code d'accès (mémorisé ensuite).
+
+> ⚠️ La clé API ne doit **jamais** être commitée sur GitHub : en local elle vit dans `.env` (ignoré par git), sur Vercel dans les variables d'environnement.
+
 ## Architecture
 
 | Fichier | Rôle |
